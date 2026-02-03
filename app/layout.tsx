@@ -3,7 +3,7 @@ import { Metadata, Viewport } from "next";
 import { Link } from "@heroui/link";
 import clsx from "clsx";
 
-import { Providers } from "./app/providers";
+import { Providers } from "@/components/provider";
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 const api = axios.create({
   baseURL: process.env.API_URL || "http://localhost:8000/api/v1",
@@ -10,7 +10,7 @@ const api = axios.create({
 
 // ✅ Response interceptor (optional but powerful)
 api.interceptors.response.use(
-  (response: any) => response,
+  (response: AxiosResponse) => response,
   (error: any) => {
     const message =
       error?.response?.data?.message || error.message || "Something went wrong";

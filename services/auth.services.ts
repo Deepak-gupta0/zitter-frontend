@@ -2,6 +2,7 @@
 
 import api from "@/lib/axios";
 import { registerSchema } from "@/schemas/register.schema";
+import axios, { AxiosResponse } from "axios";
 
 export interface FormDataProps {
   username: string;
@@ -13,22 +14,33 @@ export const RegiterService = async (
   _: null,
   { username, email, password }: FormDataProps,
 ) => {
-  console.log("service: ", { username, email, password });
-
-  const result: any = await registerSchema.safeParseAsync({ username, email, password });
+  const result: any = await registerSchema.safeParseAsync({
+    username,
+    email,
+    password,
+  });
 
   if (!result.success) {
-    return {errors: result.error.flatten().fieldErrors}
+    return { errors: result.error.flatten().fieldErrors };
   }
 
+  try {
+    const res: AxiosResponse = await api.post("/users/register", result.data);
+    // console.log("axios", res.data);
 
-  const res = await api.post("/users/register", result.data)
-  console.log(res.data)
+    if (!res.data.success) {
+      return;
+    }
+    return { success: res.data.success };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(error.message);
+      if (error.response) {
+        // console.log(error.response.status);
+      }
+    }
+    // console.log(error)
+    return;
+  }
 };
 
-export const LoginService = async (
-  _state: null,
-  { username, email, password }: FormDataProps,
-) => {
-  console.log("service: ", { username, email, password });
-};

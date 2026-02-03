@@ -1,23 +1,21 @@
 "use client";
 import { registerSchema } from "@/schemas/register.schema";
 import { loginSchema } from "@/schemas/login.schema";
-import { LoginService, RegiterService } from "@/services/auth.services";
+import { RegiterService } from "@/services/auth.services";
 import { Button } from "@heroui/button";
 import { Form } from "@heroui/form";
 import { Input } from "@heroui/input";
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { Spinner } from "@heroui/spinner";
+import { useRouter } from "next/navigation";
+import { LoginService } from "@/services/AuthServices/login.services";
+import { ZodSafeParseResult } from "zod";
 
 export interface FieldsErrors {
   username?: string[];
   email?: string[];
   password?: string[];
 }
-
-// fieldErrors: {
-//     name: ["String must contain at least 3 character(s)"],
-//     age: ["Number must be greater than or equal to 18"]
-//   },
 
 export const EyeSlashFilledIcon = (props: { className: string }) => {
   return (
@@ -80,22 +78,41 @@ export const EyeFilledIcon = (props: { className: string }) => {
 };
 
 export function RegisterForm() {
-  const [password, setPassword] = useState<string>("hdy8dj63hdu");
+  const [username, setUsername] = useState<string>("Deepak");
   const [email, setEmail] = useState<string>("deepak@gmail.com");
-  const [username, setUsername] = useState<string>("deepak");
+  const [password, setPassword] = useState<string>("hdy8dj63hdu");
   const [isVisible, setIsVisible] = useState(false);
   const [errors, setErrors] = useState<FieldsErrors>({});
+  const router = useRouter();
   console.log(errors);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const [state, formAction, isPending] = useActionState(RegiterService, null);
 
+  // redirect side-effect
+  useEffect(() => {
+    if (state?.success) {
+      router.replace("/login");
+    }
+  }, [state?.success]);
+
+  // sync server errors to local state
+  useEffect(() => {
+    if (state?.errors) {
+      setErrors(state.errors);
+    }
+  }, [state?.errors]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     setErrors({});
     e.preventDefault();
 
-    const result: any = registerSchema.safeParse({ username, email, password });
+    const result: ZodSafeParseResult<{
+      username: string;
+      email: string;
+      password: string;
+    }> = registerSchema.safeParse({ username, email, password });
 
     if (!result.success) {
       setErrors(result.error.flatten().fieldErrors);
@@ -116,22 +133,6 @@ export function RegisterForm() {
     >
       <div className="w-full">
         <Input
-          label="Email"
-          value={email}
-          onValueChange={setEmail}
-          type="email"
-        />
-        <ul>
-          {errors.email?.map((err, i) => (
-            <li className="text-red-500 text-xs" key={i}>
-              *{err}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="w-full">
-        <Input
           label="Username"
           type="text"
           value={username}
@@ -141,6 +142,22 @@ export function RegisterForm() {
           {errors.username?.map((err, i) => (
             <li className="text-red-500 text-xs" key={i}>
               {err}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="w-full">
+        <Input
+          label="Email"
+          value={email}
+          onValueChange={setEmail}
+          type="email"
+        />
+        <ul>
+          {errors.email?.map((err, i) => (
+            <li className="text-red-500 text-xs" key={i}>
+              *{err}
             </li>
           ))}
         </ul>
@@ -197,18 +214,17 @@ export function RegisterForm() {
 
 export function LoginForm() {
   const [username, setUsername] = useState<string>("Deepak");
-  const [password, setPassword] = useState<string>("");
+  const [password, setPassword] = useState<string>("hdy8dj63hdu");
   const [isVisible, setIsVisible] = useState(false);
   const [errors, setErrors] = useState<FieldsErrors>({});
-  console.log(errors);
-
-  const [state, formAction, isPending] = useActionState(LoginService, null);
+  const [isPending, setIsPending] = useState<boolean>(false);
+  const router = useRouter();
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async () => {
     setErrors({});
-    e.preventDefault();
+    // e.preventDefault();
 
     let result: any;
 
@@ -223,10 +239,18 @@ export function LoginForm() {
 
       return;
     }
+    if (result?.data) {
+      const res = await LoginService(result.data);
 
-    startTransition(() => {
-      formAction(result.data);
-    });
+      // console.log(result.data)
+      if (res?.errors) {
+        setErrors(res.errors);
+      }
+
+      if (res?.success) {
+        router.push("/app");
+      }
+    }
   };
 
   return (
@@ -287,7 +311,7 @@ export function LoginForm() {
           type="submit"
           variant="bordered"
           className="w-full disabled:cursor-not-allowed"
-          disabled={(!password || !username) || isPending}
+          disabled={!password || !username || isPending}
         >
           {isPending ? (
             <Spinner color="default" labelColor="foreground" size="sm" />
