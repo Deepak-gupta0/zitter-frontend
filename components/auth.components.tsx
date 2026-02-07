@@ -214,7 +214,7 @@ export function RegisterForm() {
 
 export function LoginForm() {
   const [username, setUsername] = useState<string>("Deepak");
-  const [password, setPassword] = useState<string>("hdy8dj63hdu");
+  const [password, setPassword] = useState<string>("hdhhd8Jhdhd");
   const [isVisible, setIsVisible] = useState(false);
   const [errors, setErrors] = useState<FieldsErrors>({});
   const [isPending, setIsPending] = useState<boolean>(false);
@@ -248,7 +248,7 @@ export function LoginForm() {
       }
 
       if (res?.success) {
-        router.push("/app");
+        router.push("/a/home");
       }
     }
   };

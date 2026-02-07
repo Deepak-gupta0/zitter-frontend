@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: "/api/:path*",
-  //       destination: "http://localhost:8000/api/v1/:path*", // backend
-  //     },
-  //   ];
-  // },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;

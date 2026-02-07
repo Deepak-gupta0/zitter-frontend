@@ -1,20 +1,26 @@
 import { ReactNode } from "react";
-import { Navbar } from "@heroui/navbar";
 import SideNavigateBar from "@/components/SideNavigateBar";
 import MainSidebar from "@/components/mainSidebar";
 
-export default function layout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex h-screen container mx-auto justify-center">
-      <div className="h-full border w-1/5 hidden md:block">
-        <SideNavigateBar />
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-[1280px] mx-auto flex">
+        {/* Left Sidebar - Navigation */}
+        <aside className="w-[275px] hidden md:block flex-shrink-0 sticky top-0 h-screen overflow-y-auto border-r border-gray-800">
+          <SideNavigateBar />
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 min-w-0 border-r border-gray-800">
+          {children}
+        </main>
+
+        {/* Right Sidebar */}
+        <aside className="w-[350px] flex-shrink-0 sticky top-0 h-screen overflow-y-auto hidden lg:block">
+          <MainSidebar />
+        </aside>
       </div>
-      <main className="flex justify-between border md:w-[67%] w-full">
-        {children}
-        <div className="border w-1/3 md:block hidden">
-        <MainSidebar />
-        </div>
-      </main>
     </div>
   );
 }

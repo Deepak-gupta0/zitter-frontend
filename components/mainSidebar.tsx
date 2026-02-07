@@ -23,6 +23,9 @@ const MainSidebar = () => {
         <WhoToFollow />
       </div>
       <div>
+        <WhoToFollow />
+      </div>
+      <div>
         <Footer />
       </div>
     </div>
