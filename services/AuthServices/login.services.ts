@@ -21,25 +21,21 @@ export const LoginService = async ({
   if (!result.success) {
     return { errors: result.error.flatten().fieldErrors };
   }
-  // console.log(result.data)
   try {
     const res = await api.post("/users/login", result.data);
-    // console.log("axios", res);
 
     if (!res.data.success) {
       return;
     }
-    // console.log(res.data)
-    // console.log(res.headers)
-    return { success: res.data.success };
+    return { success: true };
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       console.log(error.message);
       if (error.response) {
-        // console.log(error.response.status);
+       return { success: false };
       }
     }
     const errMsg: string | null = extractErrorMessage(error.data);
-    return { errors: { password: [errMsg] } };
+    return {success: false}
   }
 };

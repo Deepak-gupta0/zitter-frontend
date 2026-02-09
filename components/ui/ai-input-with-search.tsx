@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { useAutoResizeTextarea } from "@/components/hooks/use-auto-resize-textarea";
 import { createTweet } from "@/services/Tweets-services/tweets.services";
 import { addToast } from "@heroui/toast";
-import {Spinner} from "@heroui/spinner";
+import { Spinner } from "@heroui/spinner";
+import CircularProgress from "../CircularProgress";
 
 type PreviewItem = {
   url: string;
@@ -28,8 +29,10 @@ export function AIInputWithSearch({
     minHeight,
     maxHeight,
   });
-  const [loading, setLoading] = useState(false)
-  const isDisabled = loading || (!value && !mediaFiles.length);
+  const [loading, setLoading] = useState(false);
+  const isDisabled =
+    loading || (!value && !mediaFiles.length) || value.length > 280;
+  const progress = Math.ceil((value.length * 100) / 280);
 
   // ✅ FILE SELECT
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +44,7 @@ export function AIInputWithSearch({
       type: file.type.startsWith("video") ? "video" : "image",
     }));
 
-    setPreview((prev) => [...prev, ...newPreviews]);
+    setPreview((prev: any) => [...prev, ...newPreviews]);
     setMediaFiles((prev) => [...prev, ...files]); // ✅ store files
   };
 
@@ -50,7 +53,7 @@ export function AIInputWithSearch({
     if (!value.trim() && !mediaFiles.length) return;
 
     //calling api.
-    setLoading(true)
+    setLoading(true);
     const res = await createTweet(mediaFiles, value);
 
     if (res.success) {
@@ -76,7 +79,7 @@ export function AIInputWithSearch({
     setMediaFiles([]);
     setPreview([]);
     adjustHeight(true);
-    setLoading(false)
+    setLoading(false);
   };
 
   // ✅ revoke preview URLs
@@ -86,8 +89,9 @@ export function AIInputWithSearch({
     };
   }, [preview]);
 
+
   return (
-    <div className={cn("w-full py-4 ", className)}>
+    <div className={cn("w-full py-4 border-b border-gray-700", className)}>
       <div className="relative max-w-xl w-full mx-auto outline rounded-xl">
         <Textarea
           id={id}
@@ -100,6 +104,9 @@ export function AIInputWithSearch({
             adjustHeight();
           }}
         />
+        {value.length > 280 ? (
+          <p className="mx-4 text-xs text-red-500">* Text limit exceed</p>
+        ) : null}
 
         {/* PREVIEW */}
         <div className="flex flex-wrap px-3">
@@ -135,13 +142,22 @@ export function AIInputWithSearch({
             <ImagePlus className="w-5 h-5" />
           </label>
 
-          <button
-            onClick={handleSubmit}
-            disabled={isDisabled}
-            className="px-4 py-2 text-sm bg-blue-500 text-white rounded-3xl disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-             {loading? (<Spinner color="warning" size="sm" />) : (<span>Post</span>)}
-          </button>
+          <div className="flex gap-3 justify-center items-center">
+            <div>
+              <CircularProgress progress={progress} count={value.length} />
+            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={isDisabled}
+              className="px-4 py-2 text-sm bg-blue-500 text-white rounded-3xl disabled:bg-transparent disabled:outline disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <Spinner color="warning" size="sm" />
+              ) : (
+                <span>Post</span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

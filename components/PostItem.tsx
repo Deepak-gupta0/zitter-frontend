@@ -1,15 +1,16 @@
 import social from "@/public/origami.png";
 import Image from "next/image";
 import { MessageCircle, Repeat2, Heart, BarChart3, Bookmark, Share } from "lucide-react";
+import {Avatar} from "@heroui/avatar"
 
-interface Owner {
+export interface Owner {
   _id: string;
   username: string;
-  avartar: string;
-  fullName: string;
+  avartar?: string;
+  fullName?: string;
 }
 
-interface MediaFile {
+export interface MediaFile {
   type: "image" | "video" | "gif";
   url: string;
   publicId: string;
@@ -18,7 +19,7 @@ interface MediaFile {
   duration?: number;
 }
 
-interface Post {
+export interface Post {
   _id: string;
   content: string;
   owner: Owner;
@@ -194,17 +195,22 @@ const PostItem = ({ post }: { post: Post }) => {
   };
 
   return (
-    <div className="flex gap-3 border-b border-gray-700 px-4 py-3 hover:bg-gray-900/30 transition-colors cursor-pointer">
+    <div className="flex gap-3 border-b border-gray-700 px-4 py-3 hover:bg-gray-900/10 transition-colors cursor-pointer">
       {/* Avatar */}
       <div className="flex-shrink-0">
         <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700">
-          <Image 
+          {
+            post.owner?.avartar ? ( <Image 
             src={post.owner.avartar || social} 
-            alt={post.owner.fullName}
+            alt={post.owner.username}
             width={40}
             height={40}
             className="object-cover"
-          />
+          />) : (
+            <Avatar name={post.owner.username} />
+          )
+          }
+         
         </div>
       </div>
 
@@ -213,7 +219,7 @@ const PostItem = ({ post }: { post: Post }) => {
         {/* Header */}
         <div className="flex items-center gap-1 mb-1">
           <span className="font-bold text-white hover:underline">
-            {post.owner.fullName}
+            {post.owner.fullName || post.owner.username}
           </span>
           <span className="text-gray-500">@{post.owner.username}</span>
           <span className="text-gray-500">·</span>
@@ -231,7 +237,7 @@ const PostItem = ({ post }: { post: Post }) => {
         {renderMedia()}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between max-w-[425px] mt-2">
+        <div className="flex items-center justify-between w-full mt-2">
           {/* Reply */}
           <button className="flex items-center gap-1 group">
             <div className="p-2 rounded-full group-hover:bg-blue-900/30 transition-colors">
@@ -259,7 +265,7 @@ const PostItem = ({ post }: { post: Post }) => {
           {/* Like */}
           <button className="flex items-center gap-1 group">
             <div className="p-2 rounded-full group-hover:bg-pink-900/30 transition-colors">
-              <Heart className="w-[18px] h-[18px] text-gray-500 group-hover:text-pink-500" />
+              <Heart className="w-[18px] h-[18px] text-transparent group-hover:text-pink-500" fill="#C20E4D"/>
             </div>
             {post.likesCount > 0 && (
               <span className="text-sm text-gray-500 group-hover:text-pink-500">

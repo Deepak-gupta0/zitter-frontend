@@ -5,7 +5,12 @@ import { RegiterService } from "@/services/auth.services";
 import { Button } from "@heroui/button";
 import { Form } from "@heroui/form";
 import { Input } from "@heroui/input";
-import { startTransition, useActionState, useEffect, useState } from "react";
+import React, {
+  startTransition,
+  useActionState,
+  useEffect,
+  useState,
+} from "react";
 import { Spinner } from "@heroui/spinner";
 import { useRouter } from "next/navigation";
 import { LoginService } from "@/services/AuthServices/login.services";
@@ -84,7 +89,6 @@ export function RegisterForm() {
   const [isVisible, setIsVisible] = useState(false);
   const [errors, setErrors] = useState<FieldsErrors>({});
   const router = useRouter();
-  console.log(errors);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
@@ -222,9 +226,9 @@ export function LoginForm() {
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<FormDataEvent>) => {
+    e.preventDefault();
     setErrors({});
-    // e.preventDefault();
 
     let result: any;
 
@@ -242,13 +246,11 @@ export function LoginForm() {
     if (result?.data) {
       const res = await LoginService(result.data);
 
-      // console.log(result.data)
       if (res?.errors) {
-        setErrors(res.errors);
+        setErrors(res.errors || { password: "Something went wrong" });
       }
-
       if (res?.success) {
-        router.push("/a/home");
+        return router.push("/a/home");
       }
     }
   };
