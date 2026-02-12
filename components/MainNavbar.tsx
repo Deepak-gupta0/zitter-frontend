@@ -1,8 +1,3 @@
-import React from 'react'
-import { Button } from "@heroui/button";
-import { Link } from "@heroui/link";
-import { Navbar, NavbarItem } from "@heroui/navbar";
-
 const MainNavbar = () => {
   return (
     <nav className='w-full inline-flex'>

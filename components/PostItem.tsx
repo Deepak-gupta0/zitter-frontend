@@ -1,7 +1,15 @@
 import social from "@/public/origami.png";
 import Image from "next/image";
-import { MessageCircle, Repeat2, Heart, BarChart3, Bookmark, Share } from "lucide-react";
-import {Avatar} from "@heroui/avatar"
+import {
+  MessageCircle,
+  Repeat2,
+  Heart,
+  BarChart3,
+  Bookmark,
+  Share,
+} from "lucide-react";
+import { Avatar } from "@heroui/avatar";
+import Link from "next/link";
 
 export interface Owner {
   _id: string;
@@ -46,11 +54,11 @@ const PostItem = ({ post }: { post: Post }) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    
+
     if (hours < 24) return `${hours}h`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   const renderMedia = () => {
@@ -195,22 +203,27 @@ const PostItem = ({ post }: { post: Post }) => {
   };
 
   return (
-    <div className="flex gap-3 border-b border-gray-700 px-4 py-3 hover:bg-gray-900/10 transition-colors cursor-pointer">
+    <Link
+      href={`/a/posts/${post._id}`}
+      scroll={false}
+      className="flex gap-3 border-b border-gray-700 px-4 py-3 hover:bg-gray-900/10 transition-colors cursor-pointer"
+    >
       {/* Avatar */}
-      <div className="flex-shrink-0">
+      <div className=" flex h-full ">
         <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700">
-          {
-            post.owner?.avartar ? ( <Image 
-            src={post.owner.avartar || social} 
-            alt={post.owner.username}
-            width={40}
-            height={40}
-            className="object-cover"
-          />) : (
-            <Avatar name={post.owner.username} />
-          )
-          }
-         
+          {post.owner?.avartar ? (
+            <Image
+              src={post.owner.avartar || social}
+              alt={post.owner.username}
+              width={40}
+              height={40}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Avatar name={post.owner.username} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -265,7 +278,10 @@ const PostItem = ({ post }: { post: Post }) => {
           {/* Like */}
           <button className="flex items-center gap-1 group">
             <div className="p-2 rounded-full group-hover:bg-pink-900/30 transition-colors">
-              <Heart className="w-[18px] h-[18px] text-transparent group-hover:text-pink-500" fill="#C20E4D"/>
+              <Heart
+                className="w-[18px] h-[18px] text-transparent group-hover:text-pink-500"
+                fill="#C20E4D"
+              />
             </div>
             {post.likesCount > 0 && (
               <span className="text-sm text-gray-500 group-hover:text-pink-500">
@@ -297,7 +313,7 @@ const PostItem = ({ post }: { post: Post }) => {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

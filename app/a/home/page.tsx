@@ -5,12 +5,14 @@ import { getForYouHomeData } from "@/services/HomeServices/home.server.services"
 
 export default async function page() {
   const res = await getForYouHomeData();
+
+
   return (
     <div>
       {/* --------------------main nav--------------- */}
       <div className="border-b border-gray-700 bg-black/90 sticky top-0 w-full z-20">
-        <MainNavbar />
-      </div>
+          <MainNavbar /> {/*this contain nav of 'For you' and 'Following'  */}
+      </div> 
 
       {/* -------------------create post---------------------- */}
       <div className="hidden md:block">
@@ -24,7 +26,11 @@ export default async function page() {
 
       {/* ----------------------post list--------------------------- */}
       <div>
-        <PostList initialPosts={res.tweets} initialCursor={res.pagination.nextCursor}  hasMoreFromServer={res.pagination.hasMore}/>
+        <PostList
+          initialPosts={res.tweets}
+          initialCursor={res.pagination.nextCursor}
+          hasMoreFromServer={res.pagination.hasMore}
+        />
       </div>
     </div>
   );

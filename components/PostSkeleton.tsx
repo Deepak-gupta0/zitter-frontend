@@ -1,7 +1,7 @@
 import { Skeleton } from "@heroui/skeleton";
 import { Card } from "@heroui/card";
 
-export default function PostSkeleton() {
+export function PostSkeleton() {
   return (
     <Card
       radius="none"

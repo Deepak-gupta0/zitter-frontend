@@ -4,6 +4,7 @@ import { useInView } from "react-intersection-observer";
 import PostItem from "./PostItem";
 import type { Post } from "./PostItem";
 import SkeletonFeed from "./SkeletonFeed";
+import { feedCache } from "@/utils/feedCache";
 
 interface PostListProps {
   initialPosts: Post[];
@@ -16,33 +17,43 @@ const PostList = ({
   initialCursor,
   hasMoreFromServer,
 }: PostListProps) => {
-  const [posts, setPosts] = useState(initialPosts);
-  const [cursor, setCursor] = useState(initialCursor);
-  const [hasMore, setHasMore] = useState(hasMoreFromServer);
-  const [loading, setLoading] = useState(false);
+  const [posts, setPosts] = useState(() =>
+    feedCache.posts.length > 0 ? feedCache.posts : initialPosts,
+  );
 
-  const loadingRef = useRef(false);
-  const lastCursorRef = useRef<string | null>(null);
+  const [cursor, setCursor] = useState(() =>
+    feedCache.posts.length > 0 ? feedCache.cursor : initialCursor,
+  );
+
+  const [hasMore, setHasMore] = useState(() =>
+    feedCache.posts.length > 0 ? feedCache.hasMore : hasMoreFromServer,
+  );
+  const [loading, setLoading] = useState(false);
+  console.log(posts);
+
+  const loadingRef = useRef<boolean>(false);
+  const cursorRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const { ref: loadMoreRef, inView } = useInView({
-    rootMargin: "200px",
-  });
+  const { ref: loadMoreRef, inView } = useInView({ rootMargin: "200px" });
 
   const fetchMore = async () => {
-    // 🛑 duplicate / race guards
-    if (loadingRef.current || !hasMore) return;
-    if (cursor === lastCursorRef.current) return;
+    //Agar pehle se loading ref true hai toh --> bhag ja yha se
+    //Agar backend me data hai hi nhi toh --> bhag ja yha se
+    if (!hasMore || loadingRef.current) return;
 
-    lastCursorRef.current = cursor;
+    //Agar purana wala fetch abhi hone wale fetch se similar hua toh bhag ja yha se.
+    if (cursor === cursorRef.current) return;
+    cursorRef.current = cursor;
 
-    // 🛑 cancel previous request
+    //Ab naya fetch ka req aa gya hai purani fetches ko cancel kr do.
     abortRef.current?.abort();
+    //naya Abort controller de do jisse un-mount krna easy ho jaye.
     const controller = new AbortController();
     abortRef.current = controller;
 
-    loadingRef.current = true;
     setLoading(true);
+    loadingRef.current = true;
 
     try {
       const res = await fetch(
@@ -51,7 +62,7 @@ const PostList = ({
           method: "GET",
           credentials: "include",
           signal: controller.signal,
-        }
+        },
       );
 
       if (!res.ok) throw new Error("Failed to fetch");
@@ -65,13 +76,15 @@ const PostList = ({
       if (err.name === "AbortError") return;
       console.error("Fetch more error:", err);
     } finally {
-      loadingRef.current = false;
       setLoading(false);
+      loadingRef.current = false;
     }
   };
 
   useEffect(() => {
-    if (inView) fetchMore();
+    if (inView && hasMore && !loadingRef.current) {
+      fetchMore();
+    }
   }, [inView]);
 
   useEffect(() => {
@@ -79,6 +92,27 @@ const PostList = ({
       abortRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (feedCache.posts.length > 0) {
+      setPosts(feedCache.posts);
+      setCursor(feedCache.cursor);
+      setHasMore(feedCache.hasMore);
+
+      requestAnimationFrame(() => {
+        window.scrollTo(0, feedCache.scrollY);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      feedCache.posts = posts;
+      feedCache.cursor = cursor;
+      feedCache.hasMore = hasMore;
+      feedCache.scrollY = window.scrollY;
+    };
+  }, [posts, cursor, hasMore]);
 
   return (
     <div>

@@ -1,4 +1,4 @@
-import PostSkeleton from "./PostSkeleton";
+import {PostSkeleton} from "./PostSkeleton";
 
 function SkeletonFeed({ count = 5 }: { count?: number }) {
   return (
