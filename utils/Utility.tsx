@@ -8,6 +8,32 @@ export const highlightText = (text: string) => {
       </span>
     ) : (
       part
-    )
+    ),
   );
+};
+
+export const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+export const formatTime = (dateString: string) => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+
+  return date
+    .toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toUpperCase();
 };

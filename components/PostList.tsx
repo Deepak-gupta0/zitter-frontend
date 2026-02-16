@@ -1,131 +1,82 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+
+import { useEffect, useCallback } from "react";
 import { useInView } from "react-intersection-observer";
+import { useFeedStore } from "@/store/useFeedStore";
 import PostItem from "./PostItem";
 import type { Post } from "./PostItem";
-import SkeletonFeed from "./SkeletonFeed";
-import { feedCache } from "@/utils/feedCache";
+import {
+  getFollowingData,
+  getForYouData,
+} from "@/services/HomeServices/home.server.services";
+import SkeletonFeed from "@/skeletons/SkeletonFeed";
 
-interface PostListProps {
-  initialPosts: Post[];
-  initialCursor: string | null;
-  hasMoreFromServer: boolean;
+interface TweetResponse {
+  pagination: {
+    limit: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+  success: boolean;
+  tweets: Post[];
 }
 
-const PostList = ({
-  initialPosts,
-  initialCursor,
-  hasMoreFromServer,
-}: PostListProps) => {
-  const [posts, setPosts] = useState(() =>
-    feedCache.posts.length > 0 ? feedCache.posts : initialPosts,
-  );
+type TabType = "forYou" | "following";
 
-  const [cursor, setCursor] = useState(() =>
-    feedCache.posts.length > 0 ? feedCache.cursor : initialCursor,
-  );
+export default function PostList({ activeTab }: { activeTab: TabType }) {
+  const { forYouFeed, followingFeed, updateForYouFeed, updateFollowingFeed } =
+    useFeedStore();
 
-  const [hasMore, setHasMore] = useState(() =>
-    feedCache.posts.length > 0 ? feedCache.hasMore : hasMoreFromServer,
-  );
-  const [loading, setLoading] = useState(false);
-  console.log(posts);
 
-  const loadingRef = useRef<boolean>(false);
-  const cursorRef = useRef<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const currentFeed = activeTab === "forYou" ? forYouFeed : followingFeed; //main data yha hoga.
 
-  const { ref: loadMoreRef, inView } = useInView({ rootMargin: "200px" });
+  const updateFeed =
+    activeTab === "forYou" ? updateForYouFeed : updateFollowingFeed; //Update ke liye code yha likha jayega
 
-  const fetchMore = async () => {
-    //Agar pehle se loading ref true hai toh --> bhag ja yha se
-    //Agar backend me data hai hi nhi toh --> bhag ja yha se
-    if (!hasMore || loadingRef.current) return;
+  const { ref, inView } = useInView();
 
-    //Agar purana wala fetch abhi hone wale fetch se similar hua toh bhag ja yha se.
-    if (cursor === cursorRef.current) return;
-    cursorRef.current = cursor;
+  // 🔥 Fetch Function (Cursor Based)
+  const fetchData = useCallback(async () => {
+    if (!currentFeed.hasMore) return;
+    const res: TweetResponse =
+      activeTab === "forYou"
+        ? await getForYouData(currentFeed.cursor)
+        : await getFollowingData(currentFeed.cursor);
 
-    //Ab naya fetch ka req aa gya hai purani fetches ko cancel kr do.
-    abortRef.current?.abort();
-    //naya Abort controller de do jisse un-mount krna easy ho jaye.
-    const controller = new AbortController();
-    abortRef.current = controller;
+    if (!res.success) return;
 
-    setLoading(true);
-    loadingRef.current = true;
+    updateFeed({
+      posts: [...currentFeed.posts, ...res.tweets], // append
+      cursor: res.pagination.nextCursor,
+      hasMore: res.pagination.hasMore,
+    });
+  }, [activeTab, currentFeed]);
 
-    try {
-      const res = await fetch(
-        `http://localhost:8000/api/v1/tweets/home?cursor=${cursor ?? ""}`,
-        {
-          method: "GET",
-          credentials: "include",
-          signal: controller.signal,
-        },
-      );
-
-      if (!res.ok) throw new Error("Failed to fetch");
-
-      const { data } = await res.json();
-
-      setPosts((prev) => [...prev, ...data.tweets]);
-      setCursor(data.nextCursor);
-      setHasMore(data.hasMore);
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
-      console.error("Fetch more error:", err);
-    } finally {
-      setLoading(false);
-      loadingRef.current = false;
-    }
-  };
-
+  // 🚀 Initial Load (only if no posts already)
   useEffect(() => {
-    if (inView && hasMore && !loadingRef.current) {
-      fetchMore();
+    if (currentFeed.posts.length === 0) {
+      fetchData();
+    }
+  }, [activeTab]);
+
+  // ♾ Infinite Scroll Trigger
+  useEffect(() => {
+    if (inView) {
+      fetchData();
     }
   }, [inView]);
 
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (feedCache.posts.length > 0) {
-      setPosts(feedCache.posts);
-      setCursor(feedCache.cursor);
-      setHasMore(feedCache.hasMore);
-
-      requestAnimationFrame(() => {
-        window.scrollTo(0, feedCache.scrollY);
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      feedCache.posts = posts;
-      feedCache.cursor = cursor;
-      feedCache.hasMore = hasMore;
-      feedCache.scrollY = window.scrollY;
-    };
-  }, [posts, cursor, hasMore]);
-
   return (
     <div>
-      {posts.map((item) => (
-        <PostItem key={item._id} post={item} />
+      {currentFeed.posts.map((post) => (
+        <PostItem key={post._id} post={post} />
       ))}
 
-      {/* Skeleton loader */}
-      {loading && <SkeletonFeed count={2} />}
-
-      {/* Observer */}
-      {hasMore && <div ref={loadMoreRef} className="h-1" />}
+      {currentFeed.hasMore && (
+        <div ref={ref} >
+          <SkeletonFeed count={2}/>
+        </div>
+      )}
     </div>
   );
-};
-export default PostList;
+}

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useAutoResizeTextarea } from "@/components/hooks/use-auto-resize-textarea";
-import { createTweet } from "@/services/Tweets-services/tweets.services";
+import { createTweet } from "@/services/Tweets-services/tweet.services";
 import { addToast } from "@heroui/toast";
 import { Spinner } from "@heroui/spinner";
 import CircularProgress from "../CircularProgress";

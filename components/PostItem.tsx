@@ -14,7 +14,7 @@ import Link from "next/link";
 export interface Owner {
   _id: string;
   username: string;
-  avartar?: string;
+  avatar?: string;
   fullName?: string;
 }
 
@@ -37,6 +37,7 @@ export interface Post {
   quoteCount: number;
   likesCount: number;
   viewCount: number;
+  bookmarksCount: number;
   type: "QUOTE" | "TWEET";
   createdAt: string;
   updatedAt: string;

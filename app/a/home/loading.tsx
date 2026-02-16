@@ -1,4 +1,4 @@
-import SkeletonFeed from "@/components/SkeletonFeed";
+import SkeletonFeed from "@/skeletons/SkeletonFeed";
 
 export default function Loading() {
   return (

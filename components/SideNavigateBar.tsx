@@ -19,7 +19,6 @@ import { usePathname } from "next/navigation";
 
 const SideNavigateBar = ({res}:{res: ProfileResponse | ProfileNullResponse}) => {
   const pathName = usePathname()
-  console.log(pathName)
 
   const isActive = (path: string) =>
   pathName === path || pathName.startsWith(path + "/");
