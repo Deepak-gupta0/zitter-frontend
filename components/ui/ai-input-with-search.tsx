@@ -15,13 +15,23 @@ type PreviewItem = {
   type: "image" | "video";
 };
 
+interface AIInputWithSearchProps {
+  id?: string;
+  placeholder: string;
+  minHeight?: number;
+  maxHeight?: number;
+  className?: string | null;
+  type: "comment" | "post";
+}
+
 export function AIInputWithSearch({
   id = "ai-input-with-search",
-  placeholder = "What's happening? Create your own tweets",
+  placeholder,
   minHeight = 48,
   maxHeight = 164,
   className,
-}: any) {
+  type,
+}: AIInputWithSearchProps) {
   const [value, setValue] = useState("");
   const [preview, setPreview] = useState<PreviewItem[]>([]);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]); // ✅ real files
@@ -54,24 +64,28 @@ export function AIInputWithSearch({
 
     //calling api.
     setLoading(true);
-    const res = await createTweet(mediaFiles, value);
+    if (type === "post") {
+      const res = await createTweet(mediaFiles, value);
 
-    if (res.success) {
-      addToast({
-        title: "Post published 🎉",
-        description: "Your post has been shared successfully.",
-        color: "success",
-        variant: "flat",
-        timeout: 3000,
-      });
-    } else {
-      addToast({
-        title: "Something went wrong",
-        description: "Please try again later.",
-        color: "danger",
-        variant: "flat",
-        timeout: 4000,
-      });
+      if (res.success) {
+        addToast({
+          title: "Post published 🎉",
+          description: "Post has uploaded successfully.",
+          color: "success",
+          variant: "flat",
+          timeout: 3000,
+        });
+      } else {
+        addToast({
+          title: "Something went wrong",
+          description: "Please try again later.",
+          color: "danger",
+          variant: "flat",
+          timeout: 4000,
+        });
+      }
+    }else if(type === "comment"){
+      const res = "api call"
     }
 
     // reset
@@ -88,7 +102,6 @@ export function AIInputWithSearch({
       preview.forEach((item) => URL.revokeObjectURL(item.url));
     };
   }, [preview]);
-
 
   return (
     <div className={cn("w-full py-4 border-b border-gray-700", className)}>
@@ -130,17 +143,19 @@ export function AIInputWithSearch({
 
         {/* ACTION BAR */}
         <div className="h-12 rounded-b-xl flex items-center justify-between px-3">
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              name="media"
-              multiple
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            <ImagePlus className="w-5 h-5" />
-          </label>
+          {type === "post" && (
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                name="media"
+                multiple
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <ImagePlus className="w-5 h-5" />
+            </label>
+          )}
 
           <div className="flex gap-3 justify-center items-center">
             <div>
@@ -154,7 +169,7 @@ export function AIInputWithSearch({
               {loading ? (
                 <Spinner color="warning" size="sm" />
               ) : (
-                <span>Post</span>
+                <span>{type === "post" ? "Post" : "Reply"}</span>
               )}
             </button>
           </div>

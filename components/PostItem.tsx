@@ -16,6 +16,8 @@ export interface Owner {
   username: string;
   avatar?: string;
   fullName?: string;
+  isFollow?: boolean;
+  isLoggined?: boolean
 }
 
 export interface MediaFile {

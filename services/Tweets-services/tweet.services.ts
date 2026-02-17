@@ -1,5 +1,3 @@
-import { Post } from "@/components/PostItem";
-
 export const createTweet = async (mediaFiles: File[], value: string) => {
   if (mediaFiles.length === 0 && !value) {
     return { success: false };
@@ -30,38 +28,45 @@ export const createTweet = async (mediaFiles: File[], value: string) => {
   }
 };
 
-interface GetTweetResponse {
+interface FollowUserResponse {
   success: boolean;
-  tweet?: Post;
   error?: string;
+  message?: string;
 }
 
-export const getATweet = async (postId: string): Promise<GetTweetResponse> => {
-  if (!postId?.trim()) {
-    return { success: false, error: "Invalid postId" };
-  }
+export const followUser = async (
+  channelId: string,
+): Promise<FollowUserResponse> => {
+  if (!channelId?.trim())
+    return { success: false, error: "channel id is required" };
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tweets/${postId}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/subs/follow/${channelId}`,
       {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store", // important for fresh data
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
       },
     );
 
     if (!res.ok) {
-      return { success: false, error: `Request failed: ${res.status}` };
+      return {
+        success: false,
+        error: `Request failed: ${res.status}`,
+      };
     }
 
     const { data } = await res.json();
 
+    if (data.subscribed) {
+      return { success: true, message: "Subscribed successfully" };
+    }
+
     return {
-      success: true,
-      tweet: data,
+      success: false,
+      error: "something went wrong",
+      message: "something went wrong",
     };
   } catch (error: any) {
     return {
@@ -70,3 +75,43 @@ export const getATweet = async (postId: string): Promise<GetTweetResponse> => {
     };
   }
 };
+
+export const unFollowUser = async (channelId: string) : Promise<FollowUserResponse> => {
+  if (!channelId?.trim())
+    return { success: false, error: "channel id is required" };
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/subs/follow/${channelId}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+        cache: "no-store",
+      },
+    );
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: `Request failed: ${res.status}`,
+      };
+    }
+
+    const { data } = await res.json();
+
+    if (!data.subscribed) {
+      return { success: true, message: "UnSubscribed successfully" };
+    }
+
+    return {
+      success: false,
+      error: "something went wrong",
+      message: "something went wrong",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || "Something went wrong",
+    };
+  }
+}

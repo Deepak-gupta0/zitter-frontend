@@ -19,15 +19,15 @@ const MainNavbar = () => {
     <nav className="w-full inline-flex">
       <div
         onClick={handleForYouTab}
-        className="hover:bg-gray-600/20 py-3 w-1/2 text-center cursor-pointer "
+        className="hover:bg-gray-600/20  w-1/2 text-center cursor-pointer "
       >
-        <span>For you</span>
+        <span className={` ${activeTab === "forYou" ? "border-b-5 border-blue-400" : ""} rounded-xs h-full block w-fit py-3 px-2 mx-auto`}>For you</span>
       </div>
       <div
         onClick={handleFollowingTab}
-        className="hover:bg-gray-600/20 py-3 w-1/2 text-center cursor-pointer"
+        className="hover:bg-gray-600/20  w-1/2 text-center cursor-pointer "
       >
-        <span>Following</span>
+        <span className={` ${activeTab !== "forYou" ? "border-b-5 border-blue-400" : ""} rounded-xs h-full block w-fit py-3 px-2 mx-auto`}>Following</span>
       </div>
     </nav>
   );

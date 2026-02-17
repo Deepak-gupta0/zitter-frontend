@@ -24,7 +24,7 @@ const FeedClientWrapper = () => {
 
       {/* -------------------create post---------------------- */}
       <div className="hidden md:block">
-        <AIInputWithSearchDemo />
+        <AIInputWithSearchDemo placeholder="What's happening? Create your own tweets" type="post"/>
       </div>
 
       {/* ----------------------post list--------------------------- */}
