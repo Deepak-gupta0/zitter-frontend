@@ -1,9 +1,10 @@
 import type { Post } from "./PostItem";
 import Image from "next/image";
-import { formatDate, formatTime } from "@/utils/Utility";
+import { formatDate, formatTime, formatViewsCount } from "@/utils/Utility";
 import BackButton from "./BackButton";
 import FollowButton from "./FollowButton";
 import { AIInputWithSearchDemo } from "./demo";
+import CommentsList from "./CommentsList";
 
 const REPLIES = [
   {
@@ -68,13 +69,18 @@ const REPLIES = [
   },
 ];
 
-const fmt = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + "K" : String(n));
+// const fmt = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + "K" : String(n));
 
 function Avatar({
   initials,
   colorClass,
   size = "w-10 h-10",
   textSize = "text-sm",
+}: {
+  initials: string;
+  colorClass: string;
+  size: string;
+  textSize: string;
 }) {
   return (
     <div
@@ -96,16 +102,16 @@ function Verified() {
   );
 }
 
-function ActionBtn({ onClick, hoverColor, activeClass = "", children }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-1.5 px-2.5 py-2 rounded-full text-[#71767b] text-sm transition-all duration-150 cursor-pointer bg-transparent border-none ${hoverColor} ${activeClass}`}
-    >
-      {children}
-    </button>
-  );
-}
+// function ActionBtn({ onClick, hoverColor, activeClass = "", children }) {
+//   return (
+//     <button
+//       onClick={onClick}
+//       className={`flex items-center gap-1.5 px-2.5 py-2 rounded-full text-[#71767b] text-sm transition-all duration-150 cursor-pointer bg-transparent border-none ${hoverColor} ${activeClass}`}
+//     >
+//       {children}
+//     </button>
+//   );
+// }
 
 export default function Tweet({ tweet }: { tweet: Post }) {
   // const [liked, setLiked] = useState(false);
@@ -114,18 +120,18 @@ export default function Tweet({ tweet }: { tweet: Post }) {
   // const [following, setFollowing] = useState(tweet.owner.isFollow);
   // const [replies, setReplies] = useState(REPLIES);
   // const [replyText, setReplyText] = useState("");
-  const toggleReplyLike = (id) =>
-    setReplies((p) =>
-      p.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              liked: !r.liked,
-              likes: r.liked ? r.likes - 1 : r.likes + 1,
-            }
-          : r,
-      ),
-    );
+  // const toggleReplyLike = (id) =>
+  //   setReplies((p) =>
+  //     p.map((r) =>
+  //       r.id === id
+  //         ? {
+  //             ...r,
+  //             liked: !r.liked,
+  //             likes: r.liked ? r.likes - 1 : r.likes + 1,
+  //           }
+  //         : r,
+  //     ),
+  //   );
 
   return (
     <div className="min-h-screen bg-black flex justify-center">
@@ -159,8 +165,8 @@ export default function Tweet({ tweet }: { tweet: Post }) {
                 />
               )}
 
-              <div>
-                <div className="flex items-center gap-0.5 text-[#e7e9ea] font-bold text-[15px]">
+              <div className="cursor-pointer group">
+                <div className="flex items-center gap-0.5 text-[#e7e9ea] font-bold text-[15px] group-hover:underline">
                   {tweet.owner.fullName || tweet.owner.username} <Verified />
                 </div>
                 <div className="text-[#71767b] text-sm">
@@ -202,7 +208,7 @@ export default function Tweet({ tweet }: { tweet: Post }) {
             <span>·</span>
             <div className="group">
               <span className="text-[#e7e9ea] font-bold group-hover:underline">
-                {tweet.viewCount}
+                {formatViewsCount(tweet.viewCount)}
               </span>
               <span className="text-[#71767b]"> Views</span>
             </div>
@@ -212,13 +218,18 @@ export default function Tweet({ tweet }: { tweet: Post }) {
           <div className="flex items-center gap-5 flex-wrap border-t border-[#2f3336] border-b"></div>
 
           {/* Action buttons */}
-          
         </div>
 
-        {/* ── REPLY INPUT ── */}
-       <AIInputWithSearchDemo type="comment" placeholder={`Reply to ${tweet.owner.fullName || tweet.owner.username}'s post`}/>
+        {/* ── Comment INPUT ── */}
+        <AIInputWithSearchDemo
+          type="comment"
+          placeholder={`Add a comment on ${tweet.owner.fullName || tweet.owner.username}'s post`}
+          tweet={tweet._id}
+        />
+      <div className="p-3">
+        <CommentsList tweetId={tweet._id} />
+      </div>
       </div>
     </div>
   );
 }
-

@@ -9,29 +9,38 @@ import { createTweet } from "@/services/Tweets-services/tweet.services";
 import { addToast } from "@heroui/toast";
 import { Spinner } from "@heroui/spinner";
 import CircularProgress from "../CircularProgress";
+import { addAComment, addAReply } from "@/services/CommentServices/comment-service";
 
 type PreviewItem = {
   url: string;
   type: "image" | "video";
 };
 
-interface AIInputWithSearchProps {
+interface BaseProps {
   id?: string;
   placeholder: string;
   minHeight?: number;
   maxHeight?: number;
   className?: string | null;
-  type: "comment" | "post";
+}
+interface PostProps extends BaseProps {
+  type: "post";
 }
 
-export function AIInputWithSearch({
-  id = "ai-input-with-search",
-  placeholder,
-  minHeight = 48,
-  maxHeight = 164,
-  className,
-  type,
-}: AIInputWithSearchProps) {
+interface CommentProps extends BaseProps {
+  type: "comment";
+  tweet: string;
+}
+interface ReplyProps extends BaseProps {
+  type: "reply";
+  parentComment: string;
+  tweet: string;
+}
+
+type AIInputWithSearchProps = PostProps | CommentProps | ReplyProps;
+
+export function AIInputWithSearch(props: AIInputWithSearchProps) {
+  const { minHeight = 48, maxHeight = 164 } = props;
   const [value, setValue] = useState("");
   const [preview, setPreview] = useState<PreviewItem[]>([]);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]); // ✅ real files
@@ -64,7 +73,7 @@ export function AIInputWithSearch({
 
     //calling api.
     setLoading(true);
-    if (type === "post") {
+    if (props.type === "post") {
       const res = await createTweet(mediaFiles, value);
 
       if (res.success) {
@@ -84,8 +93,68 @@ export function AIInputWithSearch({
           timeout: 4000,
         });
       }
-    }else if(type === "comment"){
-      const res = "api call"
+
+    } else if (props.type === "comment") {
+      const res = await addAComment({
+        content: value,
+        tweet: props.tweet,
+      });
+
+      if (!res.success) {
+        addToast({
+          title: res.message || "Comment cannot be sent.",
+          description: "Please try again later.",
+          color: "danger",
+          variant: "flat",
+          timeout: 4000,
+        });
+
+        setLoading(false)
+        return;
+      }
+
+      addToast({
+        title: "Comment added successfully",
+        description: "You commented on this post ",
+        color: "success",
+        variant: "flat",
+        timeout: 3000,
+      });
+
+      setValue("")
+      setLoading(false)
+      return;
+    }else if(props.type === "reply"){
+      const res = await addAReply({ 
+        content: value,
+        tweet: props.tweet,
+        parentComment: props.parentComment
+      });
+
+      if (!res.success) {
+        addToast({
+          title: res.message || "Failed to reply.",
+          description: "Please try again later.",
+          color: "danger",
+          variant: "flat",
+          timeout: 4000,
+        });
+
+        setLoading(false)
+        return;
+      }
+
+      addToast({
+        title: "Replied successfully.",
+        description: "You commented on this post ",
+        color: "success",
+        variant: "flat",
+        timeout: 3000,
+      });
+
+      setValue("")
+      setLoading(false)
+      return;
     }
 
     // reset
@@ -94,6 +163,7 @@ export function AIInputWithSearch({
     setPreview([]);
     adjustHeight(true);
     setLoading(false);
+    return;
   };
 
   // ✅ revoke preview URLs
@@ -104,12 +174,12 @@ export function AIInputWithSearch({
   }, [preview]);
 
   return (
-    <div className={cn("w-full py-4 border-b border-gray-700", className)}>
+    <div className={cn("w-full py-4 border-b border-gray-700", props.className)}>
       <div className="relative max-w-xl w-full mx-auto outline rounded-xl">
         <Textarea
-          id={id}
+          id={props.id}
           value={value}
-          placeholder={placeholder}
+          placeholder={props.placeholder}
           ref={textareaRef}
           className="w-full rounded-xl rounded-b-none px-4 py-3 resize-none"
           onChange={(e) => {
@@ -143,7 +213,7 @@ export function AIInputWithSearch({
 
         {/* ACTION BAR */}
         <div className="h-12 rounded-b-xl flex items-center justify-between px-3">
-          {type === "post" && (
+          {props.type === "post" && (
             <label className="cursor-pointer">
               <input
                 type="file"
@@ -169,7 +239,7 @@ export function AIInputWithSearch({
               {loading ? (
                 <Spinner color="warning" size="sm" />
               ) : (
-                <span>{type === "post" ? "Post" : "Reply"}</span>
+                <span>{props.type === "post" ? "Post" : "comment"}</span>
               )}
             </button>
           </div>
